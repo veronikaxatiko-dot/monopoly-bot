@@ -33,12 +33,12 @@ BOARD = [
     {"type": "start", 
 	"name": "СТАРТ"},
     {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2, "image": "images/aml.png"},
-    {"type": "chance", "name": "Задание мира", "image": "images/webp.png"},
+    {"type": "chance", "name": "Задание мира"},
     {"type": "property", "name": "Нашгород", "price": 60, "rent": 4, "image": "images/ng.png"},
     {"type": "tax", "name": "Налог", "amount": 200, "image": "images/nalog.png"},
     {"type": "railroad", "name": "Море древности", "price": 200, "rent": 25, "image": "images/md.png"},
     {"type": "property", "name": "Деревня Пуассон", "price": 100, "rent": 6, "image": "images/dp.png"},
-    {"type": "chance", "name": "Задание легенд", "image": "images/zl.png"},
+    {"type": "chance", "name": "Задание легенд"},
     {"type": "property", "name": "Оперный театр Эпиклез", "price": 100, "rent": 6, "image": "images/opera.png"},
     {"type": "property", "name": "Кур-де-Фонтейн", "price": 120, "rent": 8, "image": "images/font.png"},
     {"type": "jail", "name": "Опыты Дотторе"},
@@ -48,12 +48,12 @@ BOARD = [
     {"type": "property", "name": "Остров Наруками", "price": 160, "rent": 12, "image": "images/narukami.png"},
     {"type": "railroad", "name": "Энканомия", "price": 200, "rent": 25, "image": "images/enk.png"},
     {"type": "property", "name": "Земля верхнего Сетеха", "price": 180, "rent": 14, "image": "images/zvs.png"},
-    {"type": "chance", "name": "Задание мира", "image": "images/webp.png"},
+    {"type": "chance", "name": "Задание мира"},
     {"type": "property", "name": "Царство Фаракхерт", "price": 180, "rent": 14, "image": "images/cf.png"},
     {"type": "property", "name": "Пустыня Колоннад", "price": 200, "rent": 16},
     {"type": "rest", "name": "Чайник безмятежности"},
     {"type": "property", "name": "Атокпан", "price": 220, "rent": 18, "image": "images/atokpan.png"},
-    {"type": "chance", "name": "Задание легенд", "image": "images/zl.png"},
+    {"type": "chance", "name": "Задание легенд"},
     {"type": "property", "name": "Ручьи Тойек", "price": 220, "rent": 18, "image": "images/rt.png"},
     {"type": "property", "name": "Очканатлан", "price": 240, "rent": 20, "image": "images/ochko.png"},
     {"type": "railroad", "name": "Разлом", "price": 200, "rent": 25, "image": "images/rz.png"},
@@ -64,10 +64,10 @@ BOARD = [
     {"type": "go_to_jail", "name": "На Опыты"},
     {"type": "property", "name": "Логово Ужаса Бури", "price": 300, "rent": 26, "image": "images/lub.png"},
     {"type": "property", "name": "Драконий хребет", "price": 300, "rent": 26, "image": "images/dh.png"},
-    {"type": "chance", "name": "Задание мира", "image": "images/webp.png"},
+    {"type": "chance", "name": "Задание мира"},
     {"type": "property", "name": "Долина Звездопада", "price": 320, "rent": 28, "image": "images/dz.png"},
     {"type": "railroad", "name": "Храм Асмодей", "price": 200, "rent": 25, "image": "images/ha.png"},
-    {"type": "chance", "name": "Задание легенд", "image": "images/zl.png"},
+    {"type": "chance", "name": "Задание легенд"},
     {"type": "property", "name": "Морепесок", "price": 350, "rent": 35, "image": "images/morep.png"},
     {"type": "expensive_buy", "name": "Покупка Луны", "amount": 100},
     {"type": "property", "name": "Заполярный дворец", "price": 400, "rent": 50, "image": "images/zd.png"},
@@ -82,6 +82,12 @@ CHANCE = [
     {"text": "💸 Проиграл 50 на 50: -50$", "money": -50},
     {"text": "🏦 Промокод успешно применён: +150$", "money": 150},
     {"text": "😭 Ци Ци сбила гарант: -100$", "money": -100},
+    {"text": "🗝 Карточка освобождения от тюрьмы", "action": "free_jail"},
+    {"text": "♨️ Отправляйтесь на горячие источники в Атокпан", "action": "move", "position": 21},
+    {"text": "🏁 Пройдите на старт", "action": "move_start"},
+    {"text": "🚔 Вас украли на опыты", "action": "go_to_jail"},
+    {"text": "⛩ Отправляйтесь в Храм Асмодей", "action": "move", "position": 35},
+    {"text": "⬅️ Вернитесь на 3 клетки назад", "action": "back", "steps": 3},
 ]
 
 # ==========================================
@@ -262,7 +268,7 @@ class MonopolyGame:
             player["position"] = JAIL_POSITION
             player["jail"] = 2
 
-            return "🚔 Игрок отправлен в тюрьму"
+            return "Игрок отправлен на опыты к Дотторе"
 
         return None
 
@@ -397,7 +403,7 @@ async def roll(message: Message):
         player["jail"] -= 1
 
         await message.answer(
-            f"🚔 Ты в тюрьме ещё "
+            f" Ты на опытах ещё "
             f"{player['jail']} ходов"
         )
 
@@ -561,7 +567,7 @@ async def roll_button(callback: CallbackQuery):
         player["jail"] -= 1
 
         await callback.message.answer(
-            f"🚔 Ты в тюрьме ещё "
+            f" Ты на опытах ещё "
             f"{player['jail']} ходов"
         )
 
