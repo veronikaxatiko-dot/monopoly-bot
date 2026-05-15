@@ -535,14 +535,139 @@ async def buy_property(callback: CallbackQuery):
 @dp.callback_query(lambda c: c.data == "roll")
 async def roll_button(callback: CallbackQuery):
 
-    message = Message(
-        message_id=callback.message.message_id,
-        date=callback.message.date,
-        chat=callback.message.chat,
-        from_user=callback.from_user
+    chat_id = callback.message.chat.id
+
+    if chat_id not in games:
+        return
+
+    game = games[chat_id]
+
+    user_id = callback.from_user.id
+
+    if user_id not in game.players:
+        await callback.answer("❌ Ты не в игре")
+        return
+
+    current = game.current_player()
+
+    if current != user_id:
+        await callback.answer("⏳ Сейчас не твой ход")
+        return
+
+    player = game.players[user_id]
+
+    if player["jail"] > 0:
+
+        player["jail"] -= 1
+
+        await callback.message.answer(
+            f"🚔 Ты в тюрьме ещё "
+            f"{player['jail']} ходов"
+        )
+
+        game.next_turn()
+
+        return
+
+    dice = game.roll_dice()
+
+    cell = game.move_player(user_id, dice)
+
+    text = (
+        f"🎲 Выпало: {dice}\n"
+        f"📍 Клетка: {cell['name']}\n"
     )
 
-    await roll(message)
+    extra = game.process_cell(user_id)
+
+    if extra:
+        text += f"\n{extra}"
+
+    rent = game.pay_rent(user_id)
+
+    if rent:
+        text += f"\n{rent}"
+
+    keyboard = None
+
+    pos = player["position"]
+
+    if (
+        cell["type"] in ["property", "railroad", "utility"]
+        and pos not in game.properties
+    ):
+
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"Купить за {cell['price']}$",
+                        callback_data=f"buy_{pos}"
+                    )
+                ]
+            ]
+        )
+
+    text += f"\n\n💰 Баланс: {player['money']}$"
+
+    if player["bankrupt"]:
+        text += "\n☠️ БАНКРОТ"
+
+    image_path = cell.get("image")
+
+    if image_path and os.path.exists(image_path):
+
+        photo = FSInputFile(image_path)
+
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=text,
+            reply_markup=keyboard
+        )
+
+    else:
+
+        await callback.message.answer(
+            text,
+            reply_markup=keyboard
+        )
+
+    alive = [
+        p for p in game.players.values()
+        if not p["bankrupt"]
+    ]
+
+    if len(alive) == 1:
+
+        await callback.message.answer(
+            f"🏆 Победил {alive[0]['name']}!"
+        )
+
+        del games[chat_id]
+
+        return
+
+    game.next_turn()
+
+    next_player = game.players[
+        game.current_player()
+    ]["name"]
+
+    roll_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🎲 Сделать ход",
+                    callback_data="roll"
+                )
+            ]
+        ]
+    )
+
+    await callback.message.answer(
+        f"➡️ Ход игрока: {next_player}",
+        reply_markup=roll_keyboard
+    )
 
     await callback.answer()
 
