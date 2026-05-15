@@ -535,10 +535,14 @@ async def buy_property(callback: CallbackQuery):
 @dp.callback_query(lambda c: c.data == "roll")
 async def roll_button(callback: CallbackQuery):
 
-    fake_message = callback.message
-    fake_message.from_user = callback.from_user
+    message = Message(
+        message_id=callback.message.message_id,
+        date=callback.message.date,
+        chat=callback.message.chat,
+        from_user=callback.from_user
+    )
 
-    await roll(fake_message)
+    await roll(message)
 
     await callback.answer()
 
