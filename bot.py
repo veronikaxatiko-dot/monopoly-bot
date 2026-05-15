@@ -449,24 +449,31 @@ async def roll(message: Message):
     if player["bankrupt"]:
         text += "\n☠️ БАНКРОТ"
 
-        image_path = cell.get("image")
+            image_path = cell.get("image")
 
-try:
+    try:
 
-    if image_path and os.path.exists(image_path):
+        if image_path and os.path.exists(image_path):
 
-        photo = FSInputFile(image_path)
+            photo = FSInputFile(image_path)
 
-        await message.answer_photo(
-            photo=photo,
-            caption=text,
-            reply_markup=keyboard
-        )
+            await message.answer_photo(
+                photo=photo,
+                caption=text,
+                reply_markup=keyboard
+            )
 
-    else:
+        else:
+
+            await message.answer(
+                text,
+                reply_markup=keyboard
+            )
+
+    except Exception as e:
 
         await message.answer(
-            text,
+            f"Ошибка картинки: {e}\n\n{text}",
             reply_markup=keyboard
         )
 
