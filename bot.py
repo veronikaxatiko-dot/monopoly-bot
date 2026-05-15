@@ -1,24 +1,25 @@
 import asyncio
 import random
+import os
 
-TOKEN = os.getenv("TOKEN")
-
-if not TOKEN:
-    raise ValueError("TOKEN is not set in environment variables")
-
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import (
     Message,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
     CallbackQuery,
+    FSInputFile,
 )
 
 # ==========================================
 # CONFIG
 # ==========================================
 
+TOKEN = os.getenv("TOKEN")
+
+if not TOKEN:
+    raise ValueError("❌ TOKEN не найден в Railway Variables")
 
 START_MONEY = 1500
 PASS_START = 200
@@ -30,135 +31,60 @@ JAIL_POSITION = 10
 
 BOARD = [
     {"type": "start", "name": "СТАРТ"},
-
-    {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2},
-
-    {"type": "chance", "name": "Задание мира"},
-
-    {"type": "property", "name": "Нашгород", "price": 60, "rent": 4},
-
-    {"type": "tax", "name": "Налог", "amount": 200},
-
-    {"type": "railroad", "name": "Море древности", "price": 200, "rent": 25},
-
-    {"type": "property", "name": "Деревня Пуассон", "price": 100, "rent": 6},
-
-    {"type": "chance", "name": "Задание легенд"},
-
-    {"type": "property", "name": "Оперный театр Эпиклез", "price": 100, "rent": 6},
-
-    {"type": "property", "name": "Кур-де-Фонтейн", "price": 120, "rent": 8},
-
+    {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2, "image": "images/aml.png"},
+    {"type": "chance", "name": "Задание мира", "image": "images/webp.png"},
+    {"type": "property", "name": "Нашгород", "price": 60, "rent": 4, "image": "images/ng.png"},
+    {"type": "tax", "name": "Налог", "amount": 200, "image": "images/nalog.png"},
+    {"type": "railroad", "name": "Море древности", "price": 200, "rent": 25, "image": "images/md.png"},
+    {"type": "property", "name": "Деревня Пуассон", "price": 100, "rent": 6, "image": "images/dp.png"},
+    {"type": "chance", "name": "Задание легенд", "image": "images/zl.png"},
+    {"type": "property", "name": "Оперный театр Эпиклез", "price": 100, "rent": 6, "image": "images/opera.png"},
+    {"type": "property", "name": "Кур-де-Фонтейн", "price": 120, "rent": 8, "image": "images/font.png"},
     {"type": "jail", "name": "Опыты Дотторе"},
-
-    {"type": "property", "name": "Цуруми", "price": 140, "rent": 10},
-
+    {"type": "property", "name": "Цуруми", "price": 140, "rent": 10, "image": "images/tsurumi.png"},
     {"type": "utility", "name": "Охота за грозами", "price": 150, "rent": 20},
-
-    {"type": "property", "name": "Ватацуми", "price": 140, "rent": 10},
-
-    {"type": "property", "name": "Остров Наруками", "price": 160, "rent": 12},
-
-    {"type": "railroad", "name": "Энканомия", "price": 200, "rent": 25},
-
-    {"type": "property", "name": "Земля верхнего Сетеха", "price": 180, "rent": 14},
-
-    {"type": "chance", "name": "Задание мира"},
-
-    {"type": "property", "name": "Царство Фаракхерт", "price": 180, "rent": 14},
-
+    {"type": "property", "name": "Ватацуми", "price": 140, "rent": 10, "image": "images/vatatsumi.png"},
+    {"type": "property", "name": "Остров Наруками", "price": 160, "rent": 12, "image": "images/narukami.png"},
+    {"type": "railroad", "name": "Энканомия", "price": 200, "rent": 25, "image": "images/enk.png"},
+    {"type": "property", "name": "Земля верхнего Сетеха", "price": 180, "rent": 14, "image": "images/zvs.png"},
+    {"type": "chance", "name": "Задание мира", "image": "images/webp.png"},
+    {"type": "property", "name": "Царство Фаракхерт", "price": 180, "rent": 14, "image": "images/cf.png"},
     {"type": "property", "name": "Пустыня Колоннад", "price": 200, "rent": 16},
-
     {"type": "rest", "name": "Чайник безмятежности"},
-
-    {"type": "property", "name": "Атокпан", "price": 220, "rent": 18},
-
-    {"type": "chance", "name": "Задание легенд"},
-
-    {"type": "property", "name": "Ручьи Тойек", "price": 220, "rent": 18},
-
-    {"type": "property", "name": "Очканатлан", "price": 240, "rent": 20},
-
-    {"type": "railroad", "name": "Разлом", "price": 200, "rent": 25},
-
-    {"type": "property", "name": "Долина Бишуй", "price": 260, "rent": 22},
-
-    {"type": "property", "name": "Долина Ченьюй", "price": 260, "rent": 22},
-
+    {"type": "property", "name": "Атокпан", "price": 220, "rent": 18, "image": "images/atokpan.png"},
+    {"type": "chance", "name": "Задание легенд", "image": "images/zl.png"},
+    {"type": "property", "name": "Ручьи Тойек", "price": 220, "rent": 18, "image": "images/rt.png"},
+    {"type": "property", "name": "Очканатлан", "price": 240, "rent": 20, "image": "images/ochko.png"},
+    {"type": "railroad", "name": "Разлом", "price": 200, "rent": 25, "image": "images/rz.png"},
+    {"type": "property", "name": "Долина Бишуй", "price": 260, "rent": 22, "image": "images/dbsh.png"},
+    {"type": "property", "name": "Долина Ченьюй", "price": 260, "rent": 22, "image": "images/dch.png"},
     {"type": "utility", "name": "Пророчество Фонтейна", "price": 150, "rent": 20},
-
     {"type": "property", "name": "Гавань Ли Юэ", "price": 280, "rent": 24},
-
     {"type": "go_to_jail", "name": "На Опыты"},
-
-    {"type": "property", "name": "Логово Ужаса Бури", "price": 300, "rent": 26},
-
-    {"type": "property", "name": "Драконий хребет", "price": 300, "rent": 26},
-
-    {"type": "chance", "name": "Задание мира"},
-
-    {"type": "property", "name": "Долина Звездопада", "price": 320, "rent": 28},
-
-    {"type": "railroad", "name": "Храм Асмодей", "price": 200, "rent": 25},
-
-    {"type": "chance", "name": "Задание легенд"},
-
-    {"type": "property", "name": "Морепесок", "price": 350, "rent": 35},
-
+    {"type": "property", "name": "Логово Ужаса Бури", "price": 300, "rent": 26, "image": "images/lub.png"},
+    {"type": "property", "name": "Драконий хребет", "price": 300, "rent": 26, "image": "images/dh.png"},
+    {"type": "chance", "name": "Задание мира", "image": "images/webp.png"},
+    {"type": "property", "name": "Долина Звездопада", "price": 320, "rent": 28, "image": "images/dz.png"},
+    {"type": "railroad", "name": "Храм Асмодей", "price": 200, "rent": 25, "image": "images/ha.png"},
+    {"type": "chance", "name": "Задание легенд", "image": "images/zl.png"},
+    {"type": "property", "name": "Морепесок", "price": 350, "rent": 35, "image": "images/morep.png"},
     {"type": "expensive_buy", "name": "Покупка Луны", "amount": 100},
-
-    {"type": "property", "name": "Заполярный дворец", "price": 400, "rent": 50},
+    {"type": "property", "name": "Заполярный дворец", "price": 400, "rent": 50, "image": "images/zd.png"},
 ]
 
 # ==========================================
-# CHANCE CARDS
+# CHANCE
 # ==========================================
 
 CHANCE = [
     {"text": "💰 Донат на вайфу: +200$", "money": 200},
-
     {"text": "💸 Проиграл 50 на 50: -50$", "money": -50},
-
     {"text": "🏦 Промокод успешно применён: +150$", "money": 150},
-
     {"text": "😭 Ци Ци сбила гарант: -100$", "money": -100},
-
-    {
-        "text": "🗝 Карточка освобождения от тюрьмы",
-        "action": "free_jail"
-    },
-
-    {
-        "text": "♨️ Отправляйтесь в Атокпан",
-        "action": "move",
-        "position": 21
-    },
-
-    {
-        "text": "🏁 Пройдите на старт",
-        "action": "move_start"
-    },
-
-    {
-        "text": "🚔 Вас украли на опыты",
-        "action": "go_to_jail"
-    },
-
-    {
-        "text": "⛩ Отправляйтесь в Храм Асмодей",
-        "action": "move",
-        "position": 35
-    },
-
-    {
-        "text": "⬅️ Вернитесь на 3 клетки назад",
-        "action": "back",
-        "steps": 3
-    },
 ]
 
 # ==========================================
-# GAME STORAGE
+# STORAGE
 # ==========================================
 
 games = {}
@@ -166,7 +92,6 @@ games = {}
 # ==========================================
 # GAME CLASS
 # ==========================================
-
 
 class MonopolyGame:
 
@@ -187,7 +112,6 @@ class MonopolyGame:
             "position": 0,
             "jail": 0,
             "bankrupt": False,
-            "free_jail_card": 0,
         }
 
         self.turn_order.append(user_id)
@@ -240,7 +164,6 @@ class MonopolyGame:
             f"👤 {p['name']}\n"
             f"💰 {p['money']}$\n"
             f"📍 {BOARD[p['position']]['name']}\n"
-            f"🗝 Карты выхода: {p['free_jail_card']}\n"
         )
 
     def buy_property(self, user_id):
@@ -254,11 +177,7 @@ class MonopolyGame:
 
         cell = BOARD[pos]
 
-        if cell["type"] not in [
-            "property",
-            "railroad",
-            "utility"
-        ]:
+        if cell["type"] not in ["property", "railroad", "utility"]:
             return "❌ Это нельзя купить"
 
         if player["money"] < cell["price"]:
@@ -305,26 +224,25 @@ class MonopolyGame:
 
         cell = BOARD[player["position"]]
 
-        # НАЛОГ
-
         if cell["type"] == "tax":
 
             player["money"] -= cell["amount"]
 
             return f"💸 Налог: -{cell['amount']}$"
 
-        # ОТДЫХ
-
         if cell["type"] == "rest":
 
             player["money"] += 50
 
-            return (
-                "🛌 Чайник безмятежности\n"
-                "💰 Восстановление: +50$"
-            )
+            return "🛌 Отдых: +50$"
 
-        # ДОРОГАЯ ПОКУПКА
+        if cell["type"] == "chance":
+
+            card = random.choice(CHANCE)
+
+            player["money"] += card["money"]
+
+            return f"🎴 {card['text']}"
 
         if cell["type"] == "expensive_buy":
 
@@ -333,91 +251,10 @@ class MonopolyGame:
             player["money"] -= amount
 
             if player["money"] <= 0:
-
                 player["bankrupt"] = True
+                return "☠️ БАНКРОТ"
 
-                return (
-                    f"💸 Покупка Луны: -{amount}$\n"
-                    f"☠️ БАНКРОТ"
-                )
-
-            return (
-                f"🛒 Дорогая покупка!\n"
-                f"💸 Потрачено: {amount}$"
-            )
-
-        # ШАНС
-
-        if cell["type"] == "chance":
-
-            card = random.choice(CHANCE)
-
-            text = f"🎴 {card['text']}"
-
-            # ДЕНЬГИ
-
-            if "money" in card:
-                player["money"] += card["money"]
-
-            # КАРТА ВЫХОДА
-
-            if card.get("action") == "free_jail":
-
-                player["free_jail_card"] += 1
-
-                text += "\n🗝 Получена карта выхода"
-
-            # ПЕРЕМЕЩЕНИЕ
-
-            if card.get("action") == "move":
-
-                player["position"] = card["position"]
-
-                new_cell = BOARD[player["position"]]
-
-                text += (
-                    f"\n📍 Игрок перемещён:"
-                    f" {new_cell['name']}"
-                )
-
-            # НА СТАРТ
-
-            if card.get("action") == "move_start":
-
-                player["position"] = 0
-                player["money"] += PASS_START
-
-                text += (
-                    f"\n🏁 Игрок отправлен на старт"
-                    f"\n💰 +{PASS_START}$"
-                )
-
-            # НАЗАД
-
-            if card.get("action") == "back":
-
-                player["position"] -= card["steps"]
-
-                if player["position"] < 0:
-                    player["position"] += len(BOARD)
-
-                text += (
-                    f"\n⬅️ Игрок вернулся "
-                    f"на {card['steps']} клетки"
-                )
-
-            # В ТЮРЬМУ
-
-            if card.get("action") == "go_to_jail":
-
-                player["position"] = JAIL_POSITION
-                player["jail"] = 2
-
-                text += "\n🚔 Игрок отправлен в тюрьму"
-
-            return text
-
-        # В ТЮРЬМУ
+            return f"🛒 Покупка: -{amount}$"
 
         if cell["type"] == "go_to_jail":
 
@@ -428,7 +265,6 @@ class MonopolyGame:
 
         return None
 
-
 # ==========================================
 # BOT
 # ==========================================
@@ -437,21 +273,31 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 # ==========================================
-# COMMANDS
+# START
 # ==========================================
-
 
 @dp.message(Command("start"))
 async def start(message: Message):
 
     await message.answer(
-        "🎲 MONOPOLY GENSHIN BOT\n\n"
+        "🎲 MONOPOLY YAMAARASY FLOOD BOY\n\n"
         "/newgame - новая игра\n"
-        "/join - присоединиться\n"
+        "/join - войти\n"
         "/players - игроки\n"
-        "/roll - бросить кубик\n"
+        "/roll - бросить кубик"
     )
 
+photo = FSInputFile(cell["image"])
+
+    await message.answer_photo(
+         photo=photo,
+         caption=text,
+         reply_markup=keyboard
+    )
+
+# ==========================================
+# NEW GAME
+# ==========================================
 
 @dp.message(Command("newgame"))
 async def new_game(message: Message):
@@ -462,9 +308,12 @@ async def new_game(message: Message):
 
     await message.answer(
         "🎮 Новая игра создана\n"
-        "Игроки могут входить через /join"
+        "Используйте /join"
     )
 
+# ==========================================
+# JOIN
+# ==========================================
 
 @dp.message(Command("join"))
 async def join(message: Message):
@@ -472,7 +321,7 @@ async def join(message: Message):
     chat_id = message.chat.id
 
     if chat_id not in games:
-        await message.answer("❌ Сначала /newgame")
+        await message.answer("❌ Сначала создайте игру: /newgame")
         return
 
     game = games[chat_id]
@@ -487,6 +336,9 @@ async def join(message: Message):
     else:
         await message.answer("❌ Ты уже в игре")
 
+# ==========================================
+# PLAYERS
+# ==========================================
 
 @dp.message(Command("players"))
 async def players(message: Message):
@@ -506,11 +358,9 @@ async def players(message: Message):
 
     await message.answer(text)
 
-
 # ==========================================
 # ROLL
 # ==========================================
-
 
 @dp.message(Command("roll"))
 async def roll(message: Message):
@@ -542,34 +392,18 @@ async def roll(message: Message):
 
     player = game.players[user_id]
 
-    # ТЮРЬМА
-
     if player["jail"] > 0:
 
-        if player["free_jail_card"] > 0:
+        player["jail"] -= 1
 
-            player["free_jail_card"] -= 1
-            player["jail"] = 0
+        await message.answer(
+            f"🚔 Ты в тюрьме ещё "
+            f"{player['jail']} ходов"
+        )
 
-            await message.answer(
-                "🗝 Использована карта "
-                "освобождения!"
-            )
+        game.next_turn()
 
-        else:
-
-            player["jail"] -= 1
-
-            await message.answer(
-                f"🚔 Ты в тюрьме ещё "
-                f"{player['jail']} ходов"
-            )
-
-            game.next_turn()
-
-            return
-
-    # КУБИК
+        return
 
     dice = game.roll_dice()
 
@@ -580,29 +414,22 @@ async def roll(message: Message):
         f"📍 Клетка: {cell['name']}\n"
     )
 
-    # ОБРАБОТКА КЛЕТКИ
-
     extra = game.process_cell(user_id)
 
     if extra:
         text += f"\n{extra}"
-
-    # АРЕНДА
 
     rent = game.pay_rent(user_id)
 
     if rent:
         text += f"\n{rent}"
 
-    # КНОПКА ПОКУПКИ
-
     keyboard = None
 
     pos = player["position"]
 
     if (
-        cell["type"] in
-        ["property", "railroad", "utility"]
+        cell["type"] in ["property", "railroad", "utility"]
         and pos not in game.properties
     ):
 
@@ -617,10 +444,7 @@ async def roll(message: Message):
             ]
         )
 
-    text += (
-        f"\n\n💰 Баланс: "
-        f"{player['money']}$"
-    )
+    text += f"\n\n💰 Баланс: {player['money']}$"
 
     if player["bankrupt"]:
         text += "\n☠️ БАНКРОТ"
@@ -629,8 +453,6 @@ async def roll(message: Message):
         text,
         reply_markup=keyboard
     )
-
-    # ПОБЕДА
 
     alive = [
         p for p in game.players.values()
@@ -657,14 +479,15 @@ async def roll(message: Message):
         f"➡️ Ход игрока: {next_player}"
     )
 
-
 # ==========================================
 # BUY PROPERTY
 # ==========================================
 
-
-@dp.callback_query(F.data.startswith("buy_"))
+@dp.callback_query()
 async def buy_property(callback: CallbackQuery):
+
+    if not callback.data.startswith("buy_"):
+        return
 
     chat_id = callback.message.chat.id
 
@@ -681,18 +504,16 @@ async def buy_property(callback: CallbackQuery):
 
     await callback.answer()
 
-
 # ==========================================
 # MAIN
 # ==========================================
 
-
 async def main():
 
-    print("BOT STARTED")
+    print("✅ BOT STARTED")
 
     await dp.start_polling(bot)
 
-
 if __name__ == "__main__":
     asyncio.run(main())
+
