@@ -449,7 +449,7 @@ async def roll(message: Message):
     if player["bankrupt"]:
         text += "\n☠️ БАНКРОТ"
 
-            image_path = cell.get("image")
+    image_path = cell.get("image")
 
     try:
 
