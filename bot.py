@@ -509,8 +509,23 @@ async def roll(message: Message):
 # BUY PROPERTY
 # ==========================================
 
-@dp.callback_query()
+@dp.callback_query(lambda c: c.data.startswith("buy_"))
 async def buy_property(callback: CallbackQuery):
+
+    chat_id = callback.message.chat.id
+
+    if chat_id not in games:
+        return
+
+    game = games[chat_id]
+
+    user_id = callback.from_user.id
+
+    result = game.buy_property(user_id)
+
+    await callback.message.answer(result)
+
+    await callback.answer()
 
     if not callback.data.startswith("buy_"):
         return
@@ -530,18 +545,15 @@ async def buy_property(callback: CallbackQuery):
 
     await callback.answer()
 
-    @dp.callback_query()
-    async def roll_button(callback: CallbackQuery):
+    @dp.callback_query(lambda c: c.data == "roll")
+async def roll_button(callback: CallbackQuery):
 
-        if callback.data != "roll":
-            return
+    fake_message = callback.message
+    fake_message.from_user = callback.from_user
 
-        fake_message = callback.message
-        fake_message.from_user = callback.from_user
+    await roll(fake_message)
 
-        await roll(fake_message)
-
-        await callback.answer()
+    await callback.answer()
 
 # ==========================================
 # MAIN
