@@ -2,6 +2,8 @@ import asyncio
 import random
 import os
 
+from database import *
+
 TOKEN = os.getenv("TOKEN")
 
 from aiogram import Bot, Dispatcher, F
@@ -674,6 +676,8 @@ async def buy_property(callback: CallbackQuery):
     user_id = callback.from_user.id
 
     result = game.buy_property(user_id)
+
+    add_player(user_id, name)
 
     await callback.message.answer(result)
 
