@@ -30,7 +30,8 @@ JAIL_POSITION = 10
 # ==========================================
 
 BOARD = [
-    {"type": "start", "name": "СТАРТ"},
+    {"type": "start", 
+	"name": "СТАРТ"},
     {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2, "image": "images/aml.png"},
     {"type": "chance", "name": "Задание мира", "image": "images/webp.png"},
     {"type": "property", "name": "Нашгород", "price": 60, "rent": 4, "image": "images/ng.png"},
@@ -280,21 +281,20 @@ dp = Dispatcher()
 async def start(message: Message):
 
     await message.answer(
-        "🎲 MONOPOLY YAMAARASY FLOOD BOY\n\n"
+        "🎲 MONOPOLY YAMAARASY FLOOD BOT\n\n"
         "/newgame - новая игра\n"
         "/join - войти\n"
         "/players - игроки\n"
         "/roll - бросить кубик"
     )
 
-photo = FSInputFile(cell["image"])
+    photo = FSInputFile(cell["images"])
 
     await message.answer_photo(
-         photo=photo,
-         caption=text,
-         reply_markup=keyboard
+        photo=photo,
+        caption=text,
+        reply_markup=keyboard
     )
-
 # ==========================================
 # NEW GAME
 # ==========================================
@@ -449,10 +449,24 @@ async def roll(message: Message):
     if player["bankrupt"]:
         text += "\n☠️ БАНКРОТ"
 
-    await message.answer(
-        text,
-        reply_markup=keyboard
-    )
+        image_path = cell.get("image")
+
+    if image_path and os.path.exists(image_path):
+
+        photo = FSInputFile(image_path)
+
+        await message.answer_photo(
+            photo=photo,
+            caption=text,
+            reply_markup=keyboard
+        )
+
+    else:
+
+        await message.answer(
+            text,
+            reply_markup=keyboard
+        )
 
     alive = [
         p for p in game.players.values()
