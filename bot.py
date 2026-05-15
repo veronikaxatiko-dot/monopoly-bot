@@ -451,6 +451,8 @@ async def roll(message: Message):
 
         image_path = cell.get("image")
 
+try:
+
     if image_path and os.path.exists(image_path):
 
         photo = FSInputFile(image_path)
@@ -467,6 +469,13 @@ async def roll(message: Message):
             text,
             reply_markup=keyboard
         )
+
+except Exception as e:
+
+    await message.answer(
+        f"Ошибка картинки: {e}\n\n{text}",
+        reply_markup=keyboard
+    )
 
     alive = [
         p for p in game.players.values()
