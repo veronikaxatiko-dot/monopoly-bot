@@ -489,8 +489,20 @@ async def roll(message: Message):
         game.current_player()
     ]["name"]
 
+    roll_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🎲 Сделать ход",
+                    callback_data="roll"
+                )
+            ]
+        ]
+    )
+
     await message.answer(
-        f"➡️ Ход игрока: {next_player}"
+        f"➡️ Ход игрока: {next_player}",
+        reply_markup=roll_keyboard
     )
 
 # ==========================================
@@ -517,6 +529,19 @@ async def buy_property(callback: CallbackQuery):
     await callback.message.answer(result)
 
     await callback.answer()
+
+    @dp.callback_query()
+    async def roll_button(callback: CallbackQuery):
+
+        if callback.data != "roll":
+            return
+
+        fake_message = callback.message
+        fake_message.from_user = callback.from_user
+
+        await roll(fake_message)
+
+        await callback.answer()
 
 # ==========================================
 # MAIN
