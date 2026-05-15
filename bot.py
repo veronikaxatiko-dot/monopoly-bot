@@ -680,10 +680,6 @@ async def main():
 
     await dp.start_polling(bot)
 
-await message.answer_photo(
-    photo=FSInputFile("game.png")
-)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
