@@ -1,13 +1,19 @@
 import asyncio
 import random
-import os
 
 TOKEN = os.getenv("TOKEN")
 
-from aiogram import Bot, Dispatcher
-from aiogram.filters import Command
-from aiogram.types import Message
+if not TOKEN:
+    raise ValueError("TOKEN is not set in environment variables")
 
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import Command
+from aiogram.types import (
+    Message,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    CallbackQuery,
+)
 
 # ==========================================
 # CONFIG
@@ -26,7 +32,7 @@ BOARD = [
     {"type": "start", "name": "СТАРТ"},
 
     {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2},
-    
+
     {"type": "chance", "name": "Задание мира"},
 
     {"type": "property", "name": "Нашгород", "price": 60, "rent": 4},
@@ -434,9 +440,18 @@ dp = Dispatcher()
 # COMMANDS
 # ==========================================
 
+
 @dp.message(Command("start"))
 async def start(message: Message):
-    await message.answer("Бот запущен")
+
+    await message.answer(
+        "🎲 MONOPOLY GENSHIN BOT\n\n"
+        "/newgame - новая игра\n"
+        "/join - присоединиться\n"
+        "/players - игроки\n"
+        "/roll - бросить кубик\n"
+    )
+
 
 @dp.message(Command("newgame"))
 async def new_game(message: Message):
@@ -661,8 +676,6 @@ async def buy_property(callback: CallbackQuery):
     user_id = callback.from_user.id
 
     result = game.buy_property(user_id)
-
-    add_player(user_id, name)
 
     await callback.message.answer(result)
 

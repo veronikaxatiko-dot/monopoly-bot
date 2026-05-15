@@ -1,0 +1,296 @@
+import asyncio
+import random
+import os
+
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import Command
+from aiogram.types import (
+    Message,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    CallbackQuery
+)
+# ==========================================
+# TOKEN (RAILWAY ENV)
+# ==========================================
+
+TOKEN = os.getenv("TOKEN")
+
+if not TOKEN:
+    raise ValueError("TOKEN is not set in environment variables (Railway Variables)")
+
+# ==========================================
+# CONFIG
+# ==========================================
+
+START_MONEY = 1500
+PASS_START = 200
+JAIL_POSITION = 10
+
+# ==========================================
+# BOARD
+# ==========================================
+
+BOARD = [
+    {"type": "start", "name": "СТАРТ"},
+    {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2},
+    {"type": "chance", "name": "Задание мира"},
+    {"type": "property", "name": "Нашгород", "price": 60, "rent": 4},
+    {"type": "tax", "name": "Налог", "amount": 200},
+    {"type": "railroad", "name": "Море древности", "price": 200, "rent": 25},
+    {"type": "property", "name": "Деревня Пуассон", "price": 100, "rent": 6},
+    {"type": "chance", "name": "Задание легенд"},
+    {"type": "property", "name": "Оперный театр Эпиклез", "price": 100, "rent": 6},
+    {"type": "property", "name": "Кур-де-Фонтейн", "price": 120, "rent": 8},
+    {"type": "jail", "name": "Опыты Дотторе"},
+    {"type": "property", "name": "Цуруми", "price": 140, "rent": 10},
+    {"type": "utility", "name": "Охота за грозами", "price": 150, "rent": 20},
+    {"type": "property", "name": "Ватацуми", "price": 140, "rent": 10},
+    {"type": "property", "name": "Остров Наруками", "price": 160, "rent": 12},
+    {"type": "railroad", "name": "Энканомия", "price": 200, "rent": 25},
+    {"type": "property", "name": "Земля верхнего Сетеха", "price": 180, "rent": 14},
+    {"type": "chance", "name": "Задание мира"},
+    {"type": "property", "name": "Царство Фаракхерт", "price": 180, "rent": 14},
+    {"type": "property", "name": "Пустыня Колоннад", "price": 200, "rent": 16},
+    {"type": "rest", "name": "Чайник безмятежности"},
+    {"type": "property", "name": "Атокпан", "price": 220, "rent": 18},
+    {"type": "chance", "name": "Задание легенд"},
+    {"type": "property", "name": "Ручьи Тойек", "price": 220, "rent": 18},
+    {"type": "property", "name": "Очканатлан", "price": 240, "rent": 20},
+    {"type": "railroad", "name": "Разлом", "price": 200, "rent": 25},
+    {"type": "property", "name": "Долина Бишуй", "price": 260, "rent": 22},
+    {"type": "property", "name": "Долина Ченьюй", "price": 260, "rent": 22},
+    {"type": "utility", "name": "Пророчество Фонтейна", "price": 150, "rent": 20},
+    {"type": "property", "name": "Гавань Ли Юэ", "price": 280, "rent": 24},
+    {"type": "go_to_jail", "name": "На Опыты"},
+    {"type": "property", "name": "Логово Ужаса Бури", "price": 300, "rent": 26},
+    {"type": "property", "name": "Драконий хребет", "price": 300, "rent": 26},
+    {"type": "chance", "name": "Задание мира"},
+    {"type": "property", "name": "Долина Звездопада", "price": 320, "rent": 28},
+    {"type": "railroad", "name": "Храм Асмодей", "price": 200, "rent": 25},
+    {"type": "chance", "name": "Задание легенд"},
+    {"type": "property", "name": "Морепесок", "price": 350, "rent": 35},
+    {"type": "expensive_buy", "name": "Покупка Луны", "amount": 100},
+    {"type": "property", "name": "Заполярный дворец", "price": 400, "rent": 50},
+]
+
+# ==========================================
+# CHANCE
+# ==========================================
+
+CHANCE = [
+    {"text": "💰 +200$", "money": 200},
+    {"text": "💸 -50$", "money": -50},
+    {"text": "🏦 +150$", "money": 150},
+    {"text": "😭 -100$", "money": -100},
+    {"text": "🗝 Карта выхода", "action": "free_jail"},
+    {"text": "🏁 На старт", "action": "move_start"},
+    {"text": "🚔 В тюрьму", "action": "go_to_jail"},
+]
+
+# ==========================================
+# GAME
+# ==========================================
+
+games = {}
+
+class MonopolyGame:
+    def __init__(self):
+        self.players = {}
+        self.turn_order = []
+        self.current_turn = 0
+        self.properties = {}
+
+    def add_player(self, user_id, name):
+        if user_id in self.players:
+            return False
+
+        self.players[user_id] = {
+            "name": name,
+            "money": START_MONEY,
+            "position": 0,
+            "jail": 0,
+            "bankrupt": False,
+            "free_jail_card": 0,
+        }
+
+        self.turn_order.append(user_id)
+        return True
+
+    def current_player(self):
+        return self.turn_order[self.current_turn]
+
+    def next_turn(self):
+        alive = [p for p in self.turn_order if not self.players[p]["bankrupt"]]
+        self.turn_order = alive
+
+        if len(self.turn_order) <= 1:
+            return
+
+        self.current_turn += 1
+        if self.current_turn >= len(self.turn_order):
+            self.current_turn = 0
+
+    def roll_dice(self):
+        return random.randint(1, 6)
+
+    def move_player(self, user_id, steps):
+        player = self.players[user_id]
+        old = player["position"]
+        new = (old + steps) % len(BOARD)
+
+        if new < old:
+            player["money"] += PASS_START
+
+        player["position"] = new
+        return BOARD[new]
+
+    def process_cell(self, user_id):
+        player = self.players[user_id]
+        cell = BOARD[player["position"]]
+
+        if cell["type"] == "tax":
+            player["money"] -= cell["amount"]
+            return f"💸 -{cell['amount']}$"
+
+        if cell["type"] == "rest":
+            player["money"] += 50
+            return "🛌 +50$"
+
+        if cell["type"] == "expensive_buy":
+            player["money"] -= cell["amount"]
+            if player["money"] <= 0:
+                player["bankrupt"] = True
+            return "🛒 покупка"
+
+        if cell["type"] == "chance":
+            card = random.choice(CHANCE)
+            text = card["text"]
+
+            if "money" in card:
+                player["money"] += card["money"]
+
+            if card.get("action") == "free_jail":
+                player["free_jail_card"] += 1
+
+            if card.get("action") == "move_start":
+                player["position"] = 0
+                player["money"] += PASS_START
+
+            if card.get("action") == "go_to_jail":
+                player["position"] = JAIL_POSITION
+                player["jail"] = 2
+
+            return text
+
+        return None
+
+    def pay_rent(self, user_id):
+        player = self.players[user_id]
+        pos = player["position"]
+
+        if pos not in self.properties:
+            return None
+
+        owner_id = self.properties[pos]
+        if owner_id == user_id:
+            return None
+
+        rent = BOARD[pos]["rent"]
+
+        player["money"] -= rent
+        self.players[owner_id]["money"] += rent
+
+        return f"💸 -{rent}$"
+
+    def buy_property(self, user_id):
+        player = self.players[user_id]
+        pos = player["position"]
+
+        if pos in self.properties:
+            return "❌ занято"
+
+        cell = BOARD[pos]
+
+        if cell["type"] not in ["property", "railroad", "utility"]:
+            return "❌ нельзя купить"
+
+        if player["money"] < cell["price"]:
+            return "❌ нет денег"
+
+        player["money"] -= cell["price"]
+        self.properties[pos] = user_id
+
+        return "🏠 куплено"
+
+
+# ==========================================
+# BOT
+# ==========================================
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+@dp.message(Command("start"))
+async def start(m: Message):
+    await m.answer("бот работает")
+
+@dp.message(Command("newgame"))
+async def newgame(m: Message):
+    games[m.chat.id] = MonopolyGame()
+    await m.answer("новая игра создана")
+
+@dp.message(Command("join"))
+async def join(m: Message):
+    game = games.get(m.chat.id)
+    if not game:
+        return await m.answer("сначала /newgame")
+
+    ok = game.add_player(m.from_user.id, m.from_user.first_name)
+    await m.answer("вошёл" if ok else "уже в игре")
+
+@dp.message(Command("roll"))
+async def roll(m: Message):
+    game = games.get(m.chat.id)
+    if not game:
+        return
+
+    uid = m.from_user.id
+
+    if uid != game.current_player():
+        return await m.answer("не твой ход")
+
+    player = game.players[uid]
+
+    if player["jail"] > 0:
+        player["jail"] -= 1
+        return await m.answer("в тюрьме")
+
+    dice = game.roll_dice()
+    cell = game.move_player(uid, dice)
+
+    text = f"🎲 {dice}\n📍 {cell['name']}\n"
+    extra = game.process_cell(uid)
+    if extra:
+        text += extra
+
+    rent = game.pay_rent(uid)
+    if rent:
+        text += "\n" + rent
+
+    await m.answer(text)
+
+    game.next_turn()
+
+
+# ==========================================
+# MAIN
+# ==========================================
+
+async def main():
+    print("BOT STARTED")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
