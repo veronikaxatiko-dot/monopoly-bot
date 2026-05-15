@@ -25,7 +25,7 @@ JAIL_POSITION = 10
 BOARD = [
     {"type": "start", "name": "СТАРТ"},
 
-    {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2, "image": "assets/aml.png"},
+    {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2},
     
     {"type": "chance", "name": "Задание мира"},
 
