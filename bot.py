@@ -25,15 +25,8 @@ JAIL_POSITION = 10
 BOARD = [
     {"type": "start", "name": "СТАРТ"},
 
-    {"type": "property",
-        "name": "Анклав морозной луны",
-        "price": 60,
-        "rent": 2,
-        "card": {
-            "title": "Анклав морозной луны",
-            "text": "Территория для покупки",
-            "image": "assets/aml.png"}
-
+    {"type": "property", "name": "Анклав морозной луны", "price": 60, "rent": 2, "image": "assets/aml.png"},
+    
     {"type": "chance", "name": "Задание мира"},
 
     {"type": "property", "name": "Нашгород", "price": 60, "rent": 4},
@@ -686,6 +679,10 @@ async def main():
     print("BOT STARTED")
 
     await dp.start_polling(bot)
+
+await message.answer_photo(
+    photo=FSInputFile("game.png")
+)
 
 
 if __name__ == "__main__":
