@@ -2,18 +2,12 @@ import asyncio
 import random
 import os
 
-from database import *
-
 TOKEN = os.getenv("TOKEN")
 
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
-from aiogram.types import (
-    Message,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-    CallbackQuery
-)
+from aiogram.types import Message
+
 
 # ==========================================
 # CONFIG
@@ -440,15 +434,9 @@ dp = Dispatcher()
 # COMMANDS
 # ==========================================
 
-def main_menu():
-
 @dp.message(Command("start"))
 async def start(message: Message):
-    await message.answer(
-        "🎲 Monopoly Bot",
-        reply_markup=main_menu()
-    )
-
+    await message.answer("Бот запущен")
 
 @dp.message(Command("newgame"))
 async def new_game(message: Message):
