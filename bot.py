@@ -1,5 +1,8 @@
 import asyncio
 import random
+import os
+
+TOKEN = os.getenv("TOKEN")
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
@@ -14,7 +17,6 @@ from aiogram.types import (
 # CONFIG
 # ==========================================
 
-TOKEN = "8789593635:AAFSSIwV8-xZGo5CBN__GNs0o3QYhtUoy_o"
 
 START_MONEY = 1500
 PASS_START = 200
