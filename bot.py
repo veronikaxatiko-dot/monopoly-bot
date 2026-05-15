@@ -12,7 +12,7 @@ from aiogram.types import (
     Message,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
-    CallbackQuery,
+    CallbackQuery
 )
 
 # ==========================================
@@ -440,16 +440,13 @@ dp = Dispatcher()
 # COMMANDS
 # ==========================================
 
+def main_menu():
 
 @dp.message(Command("start"))
 async def start(message: Message):
-
     await message.answer(
-        "🎲 MONOPOLY GENSHIN BOT\n\n"
-        "/newgame - новая игра\n"
-        "/join - присоединиться\n"
-        "/players - игроки\n"
-        "/roll - бросить кубик\n"
+        "🎲 Monopoly Bot",
+        reply_markup=main_menu()
     )
 
 
